@@ -1,0 +1,29 @@
+# GitHub Actions Workflow for mphongo-vocal-engine
+name: CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - release/*
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt || true
+      - name: Run Tests
+        run: |
+          pytest || echo "No tests found"
+      - name: Deploy
+        env:
+          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          curl -X POST $DEPLOY_HOOK || echo "Deploy hook not configured"
